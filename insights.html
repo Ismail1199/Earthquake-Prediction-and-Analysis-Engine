@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Data Insights - Earthquake Risk Intelligence{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center; margin: 2rem 0;">Historical Earthquake Data Visualizations</h2>
+
+<div class="grid">
+    <div class="plot-card">
+        <img src="{{ url_for('static', filename='plots/magnitude_distribution.png') }}" alt="Magnitude Distribution">
+        <h3>Magnitude Distribution</h3>
+        <p>Most earthquakes are small (Gutenberg-Richter law visible).</p>
+    </div>
+    <div class="plot-card">
+        <img src="{{ url_for('static', filename='plots/earthquakes_per_day.png') }}" alt="Earthquakes per Day">
+        <h3>Daily Earthquake Activity</h3>
+        <p>Global seismicity over time.</p>
+    </div>
+    <div class="plot-card">
+        <img src="{{ url_for('static', filename='plots/depth_vs_magnitude.png') }}" alt="Depth vs Magnitude">
+        <h3>Depth vs Magnitude</h3>
+        <p>Relationship between earthquake depth and strength.</p>
+    </div>
+    <div class="plot-card">
+        <img src="{{ url_for('static', filename='plots/seismic_clusters.png') }}" alt="Seismic Clusters">
+        <h3>Global Seismic Hotspots</h3>
+        <p>DBSCAN-identified active tectonic zones worldwide.</p>
+    </div>
+</div>
+{% endblock %}
