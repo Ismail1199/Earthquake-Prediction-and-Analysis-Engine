@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Risk Prediction - Earthquake Risk Intelligence{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center; margin: 2rem 0;">Predict Earthquake Risk Using ML Models</h2>
+
+<div class="prediction-grid">
+    <!-- Model 1 -->
+    <div class="card">
+        <h2>Strong Earthquake Risk (≥5.0 in next 7 days)</h2>
+        <label>Earthquakes in last 7 days</label>
+        <input id="m1_count" type="number" min="0" placeholder="e.g. 50">
+
+        <label>Max magnitude (last 7 days)</label>
+        <input id="m1_mag" type="number" step="0.1" min="0" placeholder="e.g. 4.8">
+
+        <label>Days since last earthquake</label>
+        <input id="m1_gap" type="number" min="0" placeholder="e.g. 2">
+
+        <button onclick="predictModel1()">Predict Risk</button>
+        <div id="res1" class="result"></div>
+    </div>
+
+    <!-- Model 2 -->
+    <div class="card">
+        <h2>Magnitude Forecast (next 7 days)</h2>
+        <label>Earthquakes in last 7 days</label>
+        <input id="m2_count" type="number" min="0" placeholder="e.g. 45">
+
+        <label>Average magnitude (last 7 days)</label>
+        <input id="m2_avgmag" type="number" step="0.1" min="0" placeholder="e.g. 3.2">
+
+        <label>Average depth (km)</label>
+        <input id="m2_depth" type="number" step="0.1" min="0" placeholder="e.g. 10">
+
+        <button onclick="predictModel2()">Predict</button>
+        <div id="res2" class="result"></div>
+    </div>
+
+    <!-- Model 3 -->
+    <div class="card">
+        <h2>Seismic Hotspot Zone Check</h2>
+        <label>Latitude</label>
+        <input id="lat" type="number" step="0.0001" placeholder="e.g. 37.7749">
+
+        <label>Longitude</label>
+        <input id="lon" type="number" step="0.0001" placeholder="e.g. -122.4194">
+
+        <button onclick="predictModel3()">Check Zone</button>
+        <div id="res3" class="result"></div>
+    </div>
+</div>
+
+<footer>
+    <strong>Notes:</strong><br><br>
+    • Model 1 predicts probability of a ≥5.0 quake in next 7 days.<br>
+    • Model 2 forecasts average magnitude in next 7 days.<br>
+    • Model 3 identifies active seismic clusters using DBSCAN.<br><br>
+    For educational and awareness purposes only • Uses historical USGS data
+</footer>
+
+<script>
+async function postData(url, payload) {
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Server error");
+    return res.json();
+}
+
+async function predictModel1() {
+    const resDiv = document.getElementById("res1");
+    try {
+        const data = await postData("/predict/strong", {
+            eq_count: document.getElementById("m1_count").value || 0,
+            max_mag: document.getElementById("m1_mag").value || 0,
+            days_gap: document.getElementById("m1_gap").value || 0
+        });
+        resDiv.innerText = `Probability: ${(data.probability * 100).toFixed(1)}% → ${data.level.toUpperCase()} RISK`;
+        resDiv.className = "result " + data.level;
+    } catch (e) {
+        resDiv.innerText = "Error: Please fill all fields correctly";
+        resDiv.className = "result";
+    }
+}
+
+async function predictModel2() {
+    const resDiv = document.getElementById("res2");
+    try {
+        const data = await postData("/predict/magnitude", {
+            eq_count: document.getElementById("m2_count").value || 0,
+            avg_mag: document.getElementById("m2_avgmag").value || 0,
+            avg_depth: document.getElementById("m2_depth").value || 0
+        });
+        resDiv.innerText = `Predicted average magnitude: ${data.prediction}`;
+        resDiv.className = "result";
+    } catch (e) {
+        resDiv.innerText = "Error: Please fill all fields correctly";
+        resDiv.className = "result";
+    }
+}
+
+async function predictModel3() {
+    const resDiv = document.getElementById("res3");
+    try {
+        const data = await postData("/predict/zone", {
+            latitude: document.getElementById("lat").value,
+            longitude: document.getElementById("lon").value
+        });
+        resDiv.innerText = `Zone ${data.zone} → ${data.status}`;
+        resDiv.className = "result " + (data.zone !== -1 ? "high" : "low");
+    } catch (e) {
+        resDiv.innerText = "Error: Invalid coordinates";
+        resDiv.className = "result";
+    }
+}
+</script>
+{% endblock %}
